@@ -21,6 +21,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 '''
 
 # Imports from python standard library
+import random
+import string
 from base64 import b64decode, b64encode
 from datetime import datetime, timezone
 from urllib.request import urlopen
@@ -786,7 +788,7 @@ class SAMLAuthenticator(Authenticator):
     def _make_authn_request(authenticator_self, element_name, handler_self):
         authn_request_text = '''<?xml version="1.0" encoding="UTF-8"?>
 <samlp:AuthnRequest  
-        ID="0" 
+        ID="{{ request_id }}" 
         Version="2.0" 
         IssueInstant="{{ issue_time }}" 
         Destination="{{ sso_login_url }}" 
@@ -799,10 +801,11 @@ class SAMLAuthenticator(Authenticator):
 
         xml_template = Template(authn_request_text)
         return xml_template.render(
-            issue_time = datetime.now().strftime(authenticator_self.time_format_string),
-            sso_login_url = authenticator_self._get_redirect_from_metadata(element_name, handler_self),
-            acs_url = authenticator_self.acs_endpoint_url,
-            audience = authenticator_self.audience
+            issue_time=datetime.now().strftime(authenticator_self.time_format_string),
+            sso_login_url=authenticator_self._get_redirect_from_metadata(element_name, handler_self),
+            acs_url=authenticator_self.acs_endpoint_url,
+            audience=authenticator_self.audience,
+            request_id=''.join(random.choice(string.ascii_letters) for _ in range(30))
         )
 
     def _make_sp_metadata(authenticator_self, meta_handler_self):
